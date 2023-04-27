@@ -1,7 +1,7 @@
 from transformers import (
     AutoModelForCausalLM,
     AutoTokenizer,
-    DataCollatorWithPadding
+    DataCollatorForSeq2Seq
 )
 
 from datasets import load_from_disk
@@ -17,8 +17,9 @@ def train(data, model, tokenizer):
                                       gradient_accumulation_steps=4,
                                       num_train_epochs=8,
                                       warmup_steps=500,
-                                      save_steps=1000,
-                                      # fp16=True,
+                                      save_steps=5000,
+                                      logging_steps=100,
+                                      fp16=True,
                                       evaluation_strategy="steps",
                                       eval_steps=500,
                                       report_to="tensorboard",
@@ -27,7 +28,7 @@ def train(data, model, tokenizer):
     trainer = Trainer(
         model=model,
         args=training_args,
-        data_collator=DataCollatorWithPadding(tokenizer, padding="longest"),
+        data_collator=DataCollatorForSeq2Seq(tokenizer, pad_to_multiple_of=8),
         train_dataset=data["train"],
         eval_dataset=data["test"],
     )
@@ -42,21 +43,15 @@ if __name__ == "__main__":
     tokenizer.padding_side = "left"
 
     print("load model:" + llm_pt)
-    #model = AutoModelForCausalLM.from_pretrained(llm_pt)
+    model = AutoModelForCausalLM.from_pretrained(llm_pt)
 
-    data_pt = "data/Belle_1M"
+    data_pt = "/root/mp/BELLE/data/Belle_1M"
     print("load data:" + data_pt)
     data = load_from_disk(data_pt)
-    # print("n(train)=%d, n(test)=%d" % (len(data["train"]), len(data["test"])))
-    #train(data, model, tokenizer)
-    data_collator=DataCollatorWithPadding(tokenizer, padding="longest")    
-    from torch.utils.data.dataloader import DataLoader
-    train_dataloader = DataLoader(data["test"], batch_size=4, collate_fn=data_collator)
-    for step, batch in enumerate(train_dataloader):          
-        print(batch)
-        exit(0)
-        
+    print("n(train)=%d, n(test)=%d" % (len(data["train"]), len(data["test"])))
     
-    
+    train(data, model, tokenizer)
 
-
+    output_dir = "/root/model/bloomz-1b1-belle/"
+    model.save_pretrained(output_dir)
+    tokenizer.save_pretrained(output_dir)

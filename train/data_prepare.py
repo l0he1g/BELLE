@@ -57,7 +57,7 @@ if __name__ == "__main__":
     print("n(train)=%d, n(test)=%d" % (len(data["train"]), len(data["test"])))
 
     print(data["test"][0])
-    tokenized_data = data.map(tokenize_sample)
+    tokenized_data = data.map(tokenize_sample, remove_columns=data["test"].column_names)
     print(tokenized_data["test"][0])
     
     tokenized_data.save_to_disk(output_pt)
