@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # DeepSpeed Team
-OUTPUT=/root/mp/BELLE/output_belle
+OUTPUT=/root/mp/BELLE/belle_output
 ZERO_STAGE=2
 
 rm -rf output/

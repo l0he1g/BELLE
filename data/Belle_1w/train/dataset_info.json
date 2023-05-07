@@ -1,0 +1,64 @@
+{
+  "builder_name": "json",
+  "citation": "",
+  "config_name": "default",
+  "dataset_size": 7243530,
+  "description": "",
+  "download_checksums": {
+    "/root/data/belle/train_0.5M_CN/1w.json": {
+      "num_bytes": 5398614,
+      "checksum": "7a9a25c946e8c16b16d9ca0018ae79235b9b0a579084b35c9349da3e56ee5254"
+    },
+    "/root/data/belle/train_1M_CN/5k.json": {
+      "num_bytes": 2433050,
+      "checksum": "ecff393907e71e0a982c5b3c4810d808788873f7fa2181709dbd5b40be41f570"
+    }
+  },
+  "download_size": 7831664,
+  "features": {
+    "input_ids": {
+      "feature": {
+        "dtype": "int32",
+        "_type": "Value"
+      },
+      "_type": "Sequence"
+    },
+    "attention_mask": {
+      "feature": {
+        "dtype": "int8",
+        "_type": "Value"
+      },
+      "_type": "Sequence"
+    },
+    "labels": {
+      "feature": {
+        "dtype": "int64",
+        "_type": "Value"
+      },
+      "_type": "Sequence"
+    }
+  },
+  "homepage": "",
+  "license": "",
+  "size_in_bytes": 15075194,
+  "splits": {
+    "train": {
+      "name": "train",
+      "num_bytes": 5005921,
+      "num_examples": 10000,
+      "dataset_name": "json"
+    },
+    "test": {
+      "name": "test",
+      "num_bytes": 2237609,
+      "num_examples": 5000,
+      "dataset_name": "json"
+    }
+  },
+  "version": {
+    "version_str": "0.0.0",
+    "major": 0,
+    "minor": 0,
+    "patch": 0
+  }
+}
