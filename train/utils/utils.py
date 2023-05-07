@@ -40,13 +40,30 @@ class MovingAverage:
 
         return self.mean
 
-
 def save_hf_format(model, tokenizer, args, sub_folder=""):
     # used to save huggingface format, so we can use it for hf.from_pretrained
     model_to_save = model.module if hasattr(model, 'module') else model
     CONFIG_NAME = "config.json"
     WEIGHTS_NAME = "pytorch_model.bin"
     output_dir = os.path.join(args.output_dir, sub_folder)
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+    output_model_file = os.path.join(output_dir, WEIGHTS_NAME)
+    output_config_file = os.path.join(output_dir, CONFIG_NAME)
+    save_dict = model_to_save.state_dict()
+    for key in list(save_dict.keys()):
+        if "lora" in key:
+            del save_dict[key]
+    torch.save(save_dict, output_model_file)
+    model_to_save.config.to_json_file(output_config_file)
+    tokenizer.save_vocabulary(output_dir)
+
+def save_hf_format_by_path(model, tokenizer, output_dir, sub_folder=""):
+    # used to save huggingface format, so we can use it for hf.from_pretrained
+    model_to_save = model.module if hasattr(model, 'module') else model
+    CONFIG_NAME = "config.json"
+    WEIGHTS_NAME = "pytorch_model.bin"
+    output_dir = os.path.join(output_dir, sub_folder)
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
     output_model_file = os.path.join(output_dir, WEIGHTS_NAME)
@@ -136,7 +153,7 @@ def save_zero_three_model(model_ema, global_rank, save_dir, zero_stage=0):
     model_to_save = model_ema.module if hasattr(model_ema,
                                                 'module') else model_ema
     if not zero_stage_3:
-        if global_rank == 0:
+        if global_rank == 0:      
             torch.save(model_to_save.state_dict(), output_model_file)
     else:
         output_state_dict = {}
@@ -154,3 +171,6 @@ def save_zero_three_model(model_ema, global_rank, save_dir, zero_stage=0):
         if global_rank == 0:
             torch.save(output_state_dict, output_model_file)
         del output_state_dict
+
+def get_learning_rate(lr_scheduler):
+    return lr_scheduler.get_last_lr()[0]

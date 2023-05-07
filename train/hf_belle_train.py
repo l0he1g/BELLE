@@ -32,13 +32,13 @@ def train(data, model, tokenizer):
                                       per_device_eval_batch_size=2,
                                       gradient_accumulation_steps=4,
                                       num_train_epochs=8,
-                                      warmup_steps=0,
-                                      save_steps=5000,
-                                      logging_steps=1000,
+                                      warmup_steps=200,
+                                      save_steps=2000,
+                                      logging_steps=200,
                                       fp16=True,
                                       save_total_limit=3,
                                       evaluation_strategy="steps",
-                                      eval_steps=1000,
+                                      eval_steps=500,
                                       optim="adamw_torch",
                                       report_to="tensorboard",
                                       logging_dir="/root/tf-logs"                                      
@@ -52,7 +52,7 @@ def train(data, model, tokenizer):
         eval_dataset=data["test"],
     )
 
-    trainer.train()# resume_from_checkpoint=True)
+    trainer.train()#resume_from_checkpoint=True)
 
 
 if __name__ == "__main__":
@@ -64,7 +64,7 @@ if __name__ == "__main__":
     print("load model:" + llm_pt)
     model = AutoModelForCausalLM.from_pretrained(llm_pt)
 
-    data_pt = "/root/mp/BELLE/data/Belle_0.5M"
+    data_pt = "/root/mp/BELLE/data/Belle_1M"
     print("load data:" + data_pt)
     data = load_from_disk(data_pt)
     print("n(train)=%d, n(test)=%d" % (len(data["train"]), len(data["test"])))

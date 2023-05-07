@@ -45,11 +45,13 @@ def tokenize_sample(sample, max_seq_len=1024):
 
 
 if __name__ == "__main__":
-    data_pts = {#"train": "/root/data/belle/train_1M_CN/Belle_open_source_1M.json",
-                "train": "/root/data/belle/train_0.5M_CN/Belle_open_source_0.5M.json",
-                "test": "/root/data/belle/train_0.5M_CN/1w.json"}
+    data_pts = {"train": "/root/data/belle/train_1M_CN/Belle_open_source_1M.json",
+                #"train": "/root/data/belle/train_0.5M_CN/Belle_open_source_0.5M.json",
+                "test": "/root/data/belle/train_0.5M_CN/1w.json",
+                #"test": "/root/data/belle/train_1M_CN/5k.json"
+                }
 
-    output_pt = "data/Belle_0.5M"
+    output_pt = "data/Belle_1M"
     tokenizer_pt = "/root/model/bloomz-1b1"
     tokenizer = AutoTokenizer.from_pretrained(tokenizer_pt)
 

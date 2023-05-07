@@ -37,7 +37,7 @@ class LinearLayer_LoRA(nn.Module):
             columns,
             lora_dim))  # apply transpose so in forward we do not need to
         self.lora_left_weight = nn.Parameter(torch.zeros(lora_dim, rows))
-        self.lora_scaling = lora_alpha / lora_dim #alpha/rank
+        self.lora_scaling = lora_alpha / lora_dim  # alpha/rank
 
         if lora_droppout > 0:
             self.lora_dropout = nn.Dropout(lora_droppout)
@@ -103,6 +103,8 @@ model.layers.30.self_attn.o_proj
 model.layers.30.self_attn.rotary_emb
 '''
 # convert the linear layer to LoRA
+
+
 def convert_linear_layer_to_lora(model,
                                  lora_module_name,
                                  lora_dim=0,
@@ -118,7 +120,7 @@ def convert_linear_layer_to_lora(model,
     for name, module in model.named_modules():
         if isinstance(module, nn.Linear) and set_params(lora_module_name, name):
             repalce_name.append(name)
-            
+
     print("repalce_name : ", repalce_name)
     for name in repalce_name:
         module = recursive_getattr(model, name)
@@ -127,7 +129,6 @@ def convert_linear_layer_to_lora(model,
             module.bias).to(module.weight.device).to(module.weight.dtype)
         recursive_setattr(model, name, tmp)
     return model
-
 
 
 def _z3_params_to_fetch(param_list):
@@ -151,8 +152,8 @@ def convert_lora_to_linear_layer(model):
                 module.weight, module.bias, module.lora_left_weight,
                 module.lora_right_weight
         ]),
-                                               modifier_rank=0,
-                                               enabled=zero_stage_3):
+                modifier_rank=0,
+                enabled=zero_stage_3):
             module.fuse_lora_weight()
     return model
 
