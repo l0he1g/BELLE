@@ -5,7 +5,32 @@ from transformers import (
 )
 from torch.utils.data import DataLoader
 from datasets import load_from_disk
-from transformers import TrainingArguments, Trainer
+from transformers import TrainingArguments, Trainer, HfArgumentParser
+
+from dataclasses import dataclass, field
+from itertools import chain
+from typing import Optional
+
+import sys
+
+@dataclass
+class ModelArguments:
+    model_path: Optional[str] = field(
+        default="",
+        metadata={
+            "help": (
+                "The model checkpoint for weights initialization.Don't set if you want to train a model from scratch."
+            )
+        },
+    )
+
+
+@dataclass
+class DataTrainingArguments:
+    data_path: str = field(
+        default=None, metadata={"help": "Dataset path include training and test data in huggingface Dataset files."}
+    )
+
 
 class ShufflingTrainer(Trainer):
     def get_train_dataloader(self):
@@ -22,55 +47,42 @@ class ShufflingTrainer(Trainer):
             pin_memory=self.args.dataloader_pin_memory,
         )
 
-def train(data, model, tokenizer):
-    training_args = TrainingArguments(
-        #output_dir="/root/model/bloomz-7b1-mt-igpt",
-                                      output_dir="output",
-                                      learning_rate=5e-5,
-                                      lr_scheduler_type="linear",
-                                      per_device_train_batch_size=2,
-                                      per_device_eval_batch_size=2,
-                                      gradient_accumulation_steps=4,
-                                      num_train_epochs=8,
-                                      warmup_steps=200,
-                                      save_steps=2000,
-                                      logging_steps=200,
-                                      fp16=True,
-                                      save_total_limit=3,
-                                      evaluation_strategy="steps",
-                                      eval_steps=500,
-                                      optim="adamw_torch",
-                                      report_to="tensorboard",
-                                      logging_dir="/root/tf-logs"                                      
-                                      )
-    print(training_args)
-    trainer = ShufflingTrainer(
+
+def train(data, model, tokenizer, training_args):
+    trainer = Trainer(
         model=model,
         args=training_args,
-        data_collator=DataCollatorForSeq2Seq(tokenizer, pad_to_multiple_of=8, max_length=512, padding="longest"),
+        data_collator=DataCollatorForSeq2Seq(
+            tokenizer, pad_to_multiple_of=8, max_length=512, padding="longest"),
         train_dataset=data["train"],
         eval_dataset=data["test"],
     )
 
-    trainer.train()#resume_from_checkpoint=True)
+    trainer.train(resume_from_checkpoint=True)
 
 
 if __name__ == "__main__":
-    llm_pt = "/root/model/bloomz-1b1"
-    print("load tokenizer:" + llm_pt)
-    tokenizer = AutoTokenizer.from_pretrained(llm_pt)
+    parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TrainingArguments))
+    if len(sys.argv) == 2 and sys.argv[1].endswith(".json"):
+        # If we pass only one argument to the script and it's the path to a json file,
+        # let's parse it to get our arguments.
+        model_args, data_args, training_args = parser.parse_json_file(json_file=os.path.abspath(sys.argv[1]))
+    else:
+        model_args, data_args, training_args = parser.parse_args_into_dataclasses()
+    
+    print(training_args)
+    print("load tokenizer:" + model_args.model_path)
+    tokenizer = AutoTokenizer.from_pretrained(model_args.model_path)
     tokenizer.padding_side = "left"
 
-    print("load model:" + llm_pt)
-    model = AutoModelForCausalLM.from_pretrained(llm_pt)
-
-    data_pt = "/root/mp/BELLE/data/Belle_1M"
-    print("load data:" + data_pt)
-    data = load_from_disk(data_pt)
-    print("n(train)=%d, n(test)=%d" % (len(data["train"]), len(data["test"])))
+    print("load model:" + model_args.model_path)
+    model = AutoModelForCausalLM.from_pretrained(model_args.model_path)
     
-    train(data, model, tokenizer)
+    print("load data:" + data_args.data_path)
+    data = load_from_disk(data_args.data_path)
+    print("n(train)=%d, n(test)=%d" % (len(data["train"]), len(data["test"])))
 
-    output_dir = "/root/model/bloomz-1b1-igpt"
-    model.save_pretrained(output_dir)
-    tokenizer.save_pretrained(output_dir)
+    train(data, model, tokenizer, training_args)
+    
+    model.save_pretrained(training_args.output_dir)
+    tokenizer.save_pretrained(training_args.output_dir)

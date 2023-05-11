@@ -202,6 +202,8 @@ def main():
 
     ds_config = get_train_ds_config(offload=args.offload,
                                     stage=args.zero_stage)
+    print("ds_config:", ds_config)
+    
     ds_config[
         'train_micro_batch_size_per_gpu'] = args.per_device_train_batch_size
     ds_config[
@@ -364,11 +366,11 @@ def main():
 
     # Train!
     print_rank_0("***** Running training *****", args.global_rank)
-    print_rank_0(
-        f"***** Evaluating perplexity, Epoch {0}/{args.num_train_epochs} *****",
-        args.global_rank)
-    perplexity = evaluation(model, eval_dataloader)
-    print_rank_0(f"ppl: {perplexity}", args.global_rank)
+    # print_rank_0(
+    #     f"***** Evaluating perplexity, Epoch {0}/{args.num_train_epochs} *****",
+    #     args.global_rank)
+    # perplexity = evaluation(model, eval_dataloader)
+    # print_rank_0(f"ppl: {perplexity}", args.global_rank)
     training_step_losses = []
     for epoch in range(args.num_train_epochs):
         print_rank_0(

@@ -3,12 +3,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # DeepSpeed Team
-OUTPUT=/root/mp/BELLE/belle_output
+OUTPUT=/root/mp/BELLE/belle_output_trainer
 ZERO_STAGE=2
 
-rm -rf output/
-rm -rf $OUTPUT
-mkdir -p $OUTPUT
 echo $OUTPUT
 echo $ZERO_STAGE
 data_output_path=$OUTPUT/data_files
